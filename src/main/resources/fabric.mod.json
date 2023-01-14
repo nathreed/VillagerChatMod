@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "villagermod",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Villager chat mod",
+  "description": "Villagers describe what they hear",
   "authors": [
-    "Me!"
+    "nathreed"
   ],
   "contact": {
     "homepage": "https://fabricmc.net/",
@@ -14,7 +14,7 @@
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/villagermod/icon.png",
 
   "environment": "*",
   "entrypoints": {
@@ -23,7 +23,7 @@
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "villagermod.mixins.json"
   ],
 
   "depends": {
