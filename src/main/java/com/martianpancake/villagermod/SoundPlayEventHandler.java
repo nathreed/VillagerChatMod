@@ -28,7 +28,6 @@ public class SoundPlayEventHandler {
     // Called when the server receives a packet that a client has played a sound
     public void clientPlayedSound(ServerWorld world, SoundPlayPacket packet) {
         world.getServer().execute(() -> {
-            // todo refactor this, it doesn't need to be static and we can bring it in here
             this.evaluateSoundForNearbyVillagersAndProcess(world, packet.x, packet.y, packet.z, packet.distance, packet.soundId);
         });
     }
@@ -54,6 +53,7 @@ public class SoundPlayEventHandler {
         }
     }
 
+    // todo probably refactor to a different villager interaction thing
     private void chatIfAvailable(String villagerUUID, String soundId, World world) {
         Date lastRequest = villagerLastChatRequest.getOrDefault(villagerUUID, Date.from(Instant.EPOCH));
         Date now = new Date();
@@ -61,8 +61,7 @@ public class SoundPlayEventHandler {
         if(secondsElapsed >= 10) {
             // Make request for this villager to ChatGPT
             villagerLastChatRequest.put(villagerUUID, now);
-            //String translatedText = Text.translatable(soundId).get().toString();
-            String translatedText = soundId;
+            String translatedText = Text.translatable(soundId).asTruncatedString(Integer.MAX_VALUE);
             try {
                 String encodedText = URLEncoder.encode(translatedText, StandardCharsets.UTF_8.toString());
                 get(String.format("http://localhost:5000/chatgpt?sound_name=%s", encodedText), villagerUUID, world);
@@ -73,6 +72,7 @@ public class SoundPlayEventHandler {
         }
     }
 
+    // todo rename to reflect functionality
     private void get(String uri, String villagerUUID, World world) {
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
@@ -82,6 +82,7 @@ public class SoundPlayEventHandler {
         client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenApply((string) -> {
+                    // todo wrap this in world.getserver.execute
                     world.getServer().getPlayerManager().broadcast(Text.literal(String.format("<%s> %s", villagerUUID, string)), false);
                     return null;
                 });
