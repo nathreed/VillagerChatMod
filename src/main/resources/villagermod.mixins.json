@@ -4,9 +4,9 @@
   "package": "com.martianpancake.villagermod.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "WorldPlaySoundMixin"
   ],
   "client": [
+    "WorldPlaySoundMixin"
   ],
   "injectors": {
     "defaultRequire": 1
