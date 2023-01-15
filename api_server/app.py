@@ -4,7 +4,7 @@ from revChatGPT.ChatGPT import Chatbot
 from flask import Flask, request, abort, send_file
 import re
 
-#chatbot = Chatbot({"session_token": sys.argv[1]})
+chatbot = Chatbot({"session_token": sys.argv[1]})
 lang_file = open("./en_US.json", "r")
 lang_json = "".join(lang_file.readlines())
 parsed = json.loads(lang_json,strict=False)
@@ -20,21 +20,23 @@ def get_chatgpt_response():
 	entity_match = entity_regex.match(sound_key)
 	print(sound_key)
 
-	translated_sound_name = None
-	if block_regex.match(sound_key) != None:
-		sound_key = "subtitles.block.generic.place"
-	elif entity_match != None:
-		print("MATCHED ON ENTITY")
-		translated_sound_name = entity_match.group(1) + " " + parsed[f'subtitles.entity.generic.{entity_match.group(2)}']
+	try:
+		translated_sound_name = None
+		if block_regex.match(sound_key) != None:
+			sound_key = "subtitles.block.generic.place"
+		elif entity_match != None:
+			print("MATCHED ON ENTITY")
+			translated_sound_name = entity_match.group(1) + " " + parsed[f'subtitles.entity.generic.{entity_match.group(2)}']
 
-	if translated_sound_name == None:
-		translated_sound_name = parsed[sound_key]
+		if translated_sound_name == None:
+			translated_sound_name = parsed[sound_key]
 
-	prompt = f'generate a single sentence response to the prompt "what would a Minecraft villager say if they heard {translated_sound_name}"'
-	#response = chatbot.ask(prompt)
+		prompt = f'generate a single sentence response to the prompt "what would a Minecraft villager say if they heard {translated_sound_name}"'
+		response = chatbot.ask(prompt)
 
-	#return response["message"]
-	return prompt
+		return response["message"]
+	except:
+		return "I hear something, but my ears aren't the best and I don't know what it was..." # make the villager say something generic to cover for any kind of error we might get
 
 
 if __name__ == '__main__':
