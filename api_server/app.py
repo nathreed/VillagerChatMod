@@ -15,10 +15,22 @@ app = Flask(__name__)
 def get_chatgpt_response():
 	sound_name = request.args.get("sound_name")
 	sound_key = "subtitles." + sound_name.split("minecraft:")[1]
-	block_regex = re.compile('block.*.place')
+	block_regex = re.compile(r'.*block\..*\.(place|break)')
+	entity_regex = re.compile(r'.*entity\.(.*)\.(big_fall|burn|death|drink|eat|explode|extinguish_fire|hurt|small_fall|splash|swim)')
+	entity_match = entity_regex.match(sound_key)
+	print(sound_key)
+
+	translated_sound_name = None
 	if block_regex.match(sound_key) != None:
 		sound_key = "subtitles.block.generic.place"
-	prompt = f'generate a single sentence response to the prompt "what would a Minecraft villager say if they heard {parsed[sound_key]}"'
+	elif entity_match != None:
+		print("MATCHED ON ENTITY")
+		translated_sound_name = entity_match.group(1) + " " + parsed[f'subtitles.entity.generic.{entity_match.group(2)}']
+
+	if translated_sound_name == None:
+		translated_sound_name = parsed[sound_key]
+
+	prompt = f'generate a single sentence response to the prompt "what would a Minecraft villager say if they heard {translated_sound_name}"'
 	#response = chatbot.ask(prompt)
 
 	#return response["message"]

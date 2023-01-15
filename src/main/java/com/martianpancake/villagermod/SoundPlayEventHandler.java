@@ -1,29 +1,19 @@
 package com.martianpancake.villagermod;
 
-import com.mojang.brigadier.Command;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class SoundPlayEventHandler {
 
-    private Map<String, Date> villagerLastChatRequest = new HashMap<>();
+    private final VillagerChatManager villagerChatManager = new VillagerChatManager();
 
     // Called when the server receives a packet that a client has played a sound
     public void clientPlayedSound(ServerWorld world, SoundPlayPacket packet) {
@@ -35,9 +25,9 @@ public class SoundPlayEventHandler {
     private void evaluateSoundForNearbyVillagersAndProcess(World world, double x, double y, double z, double soundDistance, String soundId) {
         VillagerMod.LOGGER.info(String.format("received packet for sound played at %.1f, %.1f, %.1f: %s", x, y, z, soundId));
         VillagerEntity nearbyVillager = this.oneNearbyVillager(world, x, y, z, soundDistance);
-        if(nearbyVillager != null && !soundId.equals("minecraft:entity.villager.ambient") && !soundId.contains("step")) {
+        if(nearbyVillager != null) {
             VillagerMod.LOGGER.info(String.format("Villager %s heard sound %s", nearbyVillager.getUuidAsString(), soundId));
-            this.chatIfAvailable(nearbyVillager.getUuidAsString(), soundId, world);
+            this.villagerChatManager.chatIfAvailable(nearbyVillager.getUuidAsString(), soundId, world);
         }
     }
 
@@ -53,38 +43,5 @@ public class SoundPlayEventHandler {
         }
     }
 
-    // todo probably refactor to a different villager interaction thing
-    private void chatIfAvailable(String villagerUUID, String soundId, World world) {
-        Date lastRequest = villagerLastChatRequest.getOrDefault(villagerUUID, Date.from(Instant.EPOCH));
-        Date now = new Date();
-        long secondsElapsed = (now.getTime() - lastRequest.getTime()) / 1000;
-        if(secondsElapsed >= 10) {
-            // Make request for this villager to ChatGPT
-            villagerLastChatRequest.put(villagerUUID, now);
-            String translatedText = Text.translatable(soundId).asTruncatedString(Integer.MAX_VALUE);
-            try {
-                String encodedText = URLEncoder.encode(translatedText, StandardCharsets.UTF_8.toString());
-                get(String.format("http://localhost:5000/chatgpt?sound_name=%s", encodedText), villagerUUID, world);
-            } catch (UnsupportedEncodingException e) {
-                VillagerMod.LOGGER.error("Unsupported encoding");
-            }
 
-        }
-    }
-
-    // todo rename to reflect functionality
-    private void get(String uri, String villagerUUID, World world) {
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(uri))
-                .build();
-
-        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenApply((string) -> {
-                    // todo wrap this in world.getserver.execute
-                    world.getServer().getPlayerManager().broadcast(Text.literal(String.format("<%s> %s", villagerUUID, string)), false);
-                    return null;
-                });
-    }
 }
