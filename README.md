@@ -1,9 +1,12 @@
-# Fabric Example Mod
+# Villager Chat Mod
+
+Villagers will hear sounds around them and ask ChatGPT what they should say in response, putting the result in the game chat.
 
 ## Setup
 
-For setup instructions please see the [fabric wiki page](https://fabricmc.net/wiki/tutorial:setup) that relates to the IDE that you are using.
+- need to have flask server running to receive/translate queries for chatgpt
+- flask server needs session key for login (see revChatGPT docs)
 
 ## License
 
-This template is available under the CC0 license. Feel free to learn from it and incorporate it in your own projects.
+MIT
