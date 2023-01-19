@@ -60,6 +60,29 @@ public class VillagerChatManager {
         return villagerName;
     }
 
+    public void askVillagerQuestion(String villagerName, String question, World world) {
+        String uri = "";
+        try {
+            String encodedText = URLEncoder.encode(question, StandardCharsets.UTF_8.toString());
+            uri = String.format("http://localhost:5000/talk_to_villager?message=%s", encodedText);
+        } catch (UnsupportedEncodingException e) {
+            VillagerMod.LOGGER.error("Unsupported encoding");
+        }
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(uri))
+                .build();
+
+        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenApply(HttpResponse::body)
+                .thenApply((string) -> {
+                    world.getServer().execute(() -> {
+                        world.getServer().getPlayerManager().broadcast(Text.literal(String.format("<Villager %s> %s", villagerName, string)), false);
+                    });
+                    return null;
+                });
+    }
+
     private void chatResultFromGPT(String soundId, String villagerName, World world) {
         String translatedText = Text.translatable(soundId).asTruncatedString(Integer.MAX_VALUE);
         String uri = "";

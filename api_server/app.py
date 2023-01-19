@@ -11,6 +11,19 @@ parsed = json.loads(lang_json,strict=False)
 
 app = Flask(__name__)
 
+@app.get("/talk_to_villager")
+def talk_to_villager():
+	message = request.args.get("message")
+
+	prompt = f'generate a single sentence response to the prompt "what would a Minecraft villager say if you asked them "{message}""'
+
+	try:
+		response = chatbot.ask(prompt)
+
+		return response["message"]
+	except:
+		return "My ears aren't the best and I didn't hear what you said..."
+
 @app.get("/chatgpt")
 def get_chatgpt_response():
 	sound_name = request.args.get("sound_name")
